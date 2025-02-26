@@ -13,14 +13,13 @@ export const dbService = {
 
   async createTrack(data: {
     title: string;
-    objectId: string;
-    walrusId: string;
+    artistId: string;
     genre: string;
     coverUrl: string;
     mimeType: string;
     fileSize: number;
-    artistId: string;
-    onChainObjectId: string;
+    suiId: string;
+    blobId: string;
   }) {
     return prisma.track.create({
       data: {

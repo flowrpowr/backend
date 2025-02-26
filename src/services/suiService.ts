@@ -7,7 +7,6 @@ export const suiService = {
     title: string,
     artistAddress: string,
     genre: string,
-    walrusId: string,
     coverUrl: string,
     publishDate: string = new Date().toISOString()
   ): Promise<string> {
