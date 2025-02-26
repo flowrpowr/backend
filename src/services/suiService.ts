@@ -1,45 +1,48 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { SuiClient } from "@mysten/sui/client";
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import {
+  ADMIN_KEYPAIR,
+  SUI_CLIENT,
+  FLOWR_PACKAGE_ID,
+} from "../config/constants";
 
 export const suiService = {
   async createTrack(
     title: string,
+    artist: string,
     artistAddress: string,
-    genre: string,
-    coverUrl: string,
-    publishDate: string = new Date().toISOString()
+    genre: string
   ): Promise<string> {
-    const client = new SuiClient({ url: "https://fullnode.testnet.sui.io" });
-    const admin = Ed25519Keypair.deriveKeypair(
-      process.env.WALLET_SECRET_KEY || ""
-    );
-    const packageId = process.env.PACKAGE_ID || "";
-
+    let publishDate = new Date().toISOString();
     const tx = new Transaction();
     tx.moveCall({
-      package: packageId,
+      package: FLOWR_PACKAGE_ID,
       module: "track",
       function: "create_track",
       arguments: [
         tx.pure.string(title),
+        tx.pure.string(artist),
         tx.pure.address(artistAddress),
         tx.pure.string(genre),
         tx.pure.string(publishDate),
-        tx.pure.string(coverUrl),
-        tx.pure.id(walrusId),
+        tx.pure.string("still uploading..."),
       ],
     });
 
-    tx.setSender(admin.toSuiAddress());
-    const bytes = await tx.build({ client });
-    const signature = (await admin.signTransaction(bytes)).signature;
+    tx.setSender(ADMIN_KEYPAIR.toSuiAddress());
+    const bytes = await tx.build();
+    const signature = (await ADMIN_KEYPAIR.signTransaction(bytes)).signature;
 
-    const response = await client.executeTransactionBlock({
+    //TODO: Figure out how to return objectID
+    const response = await SUI_CLIENT.executeTransactionBlock({
       transactionBlock: bytes,
       signature,
+      options: {
+        showEvents: true,
+        showObjectChanges: true,
+      },
     });
-
+    //delete after testing
+    console.log(response.events);
     return response.digest;
   },
 };
