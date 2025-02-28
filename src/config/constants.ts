@@ -19,3 +19,7 @@ export const SUI_CLIENT = new SuiClient({ url: SUI_RPC_URL });
 //Sui smart contracts
 export const FLOWR_PACKAGE_ID =
   "0x564d9dc997f54ad1da3da5e2b0d155b49272b5711eb9fb4b9d151e35286cdf76";
+
+//Azure
+export const AUDIO_CONTAINER_NAME = process.env.AUDIO_CONTAINER_NAME || "";
+export const COVER_CONTAINER_NAME = process.env.COVER_CONTAINER_NAME || "";
