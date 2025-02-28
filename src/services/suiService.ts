@@ -11,7 +11,7 @@ export const suiService = {
     artist: string,
     artistAddress: string,
     genre: string
-  ): Promise<string> {
+  ): Promise<{ txDigest: string; suiId: string }> {
     let publishDate = new Date().toISOString();
     const tx = new Transaction();
     tx.moveCall({
@@ -29,7 +29,7 @@ export const suiService = {
     });
 
     tx.setSender(ADMIN_KEYPAIR.toSuiAddress());
-    const bytes = await tx.build();
+    const bytes = await tx.build({ client: SUI_CLIENT });
     const signature = (await ADMIN_KEYPAIR.signTransaction(bytes)).signature;
 
     //TODO: Figure out how to return objectID
@@ -41,8 +41,15 @@ export const suiService = {
         showObjectChanges: true,
       },
     });
-    //delete after testing
-    console.log(response.events);
-    return response.digest;
+    // Using "any" type - less safe but more concise
+    // Using optional chaining with any type
+    let suiId = "";
+    try {
+      suiId = (response.events?.[0]?.parsedJson as any)?.track_id || "";
+    } catch (error) {
+      console.error("Failed to extract track_id from event:", error);
+    }
+    let txDigest = response.digest;
+    return { txDigest, suiId };
   },
 };
