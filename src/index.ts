@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import uploadRoutes from "./routes/uploadRoutes";
+import { Request, Response, NextFunction } from "express";
+import router from "./routes/uploadRoutes";
 
 dotenv.config();
 
@@ -21,8 +23,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-
-app.use("/", uploadRoutes);
+app.use("/api", router);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -30,7 +31,7 @@ app.get("/health", (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Server error:", err);
   res.status(500).json({
     success: false,

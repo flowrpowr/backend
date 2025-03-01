@@ -21,8 +21,8 @@ const blobServiceClient =
 // Get container clients
 const audioContainerClient =
   blobServiceClient.getContainerClient(AUDIO_CONTAINER_NAME);
-/*const coverContainerClient =
-  blobServiceClient.getContainerClient(COVER_CONTAINER_NAME);*/
+const coverContainerClient =
+  blobServiceClient.getContainerClient(COVER_CONTAINER_NAME);
 
 export const azureService = {
   /**
@@ -35,16 +35,14 @@ export const azureService = {
   async uploadAudioBlob(
     fileBuffer: Buffer,
     mimeType: string,
-    suiId: string
+    artistAddress: string,
+    title: string
   ): Promise<string> {
     try {
-      // Create container if it doesn't exist
-      await audioContainerClient.createIfNotExists({
-        access: "blob", // This makes blobs publicly accessible
-      });
-
-      // name = suiId + file extension
-      const blobName = `${suiId}.${this.getFileExtension(mimeType)}`;
+      // naming blob
+      const blobName = `${artistAddress}-${title}.${this.getFileExtension(
+        mimeType
+      )}`;
 
       // Get BlockBlobClient
       const blockBlobClient = audioContainerClient.getBlockBlobClient(blobName);
@@ -56,7 +54,6 @@ export const azureService = {
             blobContentType: mimeType,
           },
         });
-      console.log(`TESTING:\n${uploadBlobResponse}`);
       // Return the URL of the uploaded blob
       return blockBlobClient.url;
     } catch (error) {
@@ -72,21 +69,16 @@ export const azureService = {
    * @param objectId - Optional blockchain object ID to use as the blob name
    * @returns URL of the uploaded image
    */
-  /*async uploadCoverImage(
+  async uploadCoverImage(
     imageBuffer: Buffer,
     mimeType: string,
-    objectId?: string
+    artistAddress: string,
+    title: string
   ): Promise<string> {
     try {
-      // Create container if it doesn't exist
-      await coverContainerClient.createIfNotExists({
-        access: "blob", // This makes blobs publicly accessible
-      });
-
-      // Use provided object ID or generate a UUID
-      const blobName = objectId
-        ? `${objectId}.${this.getFileExtension(mimeType)}`
-        : `${uuidv4()}.${this.getFileExtension(mimeType)}`;
+      const blobName = `${artistAddress}-${title}.${this.getFileExtension(
+        mimeType
+      )}`;
 
       // Get BlockBlobClient
       const blockBlobClient = coverContainerClient.getBlockBlobClient(blobName);
@@ -104,7 +96,7 @@ export const azureService = {
       console.error("Error uploading cover to Azure:", error);
       throw new Error("Failed to upload cover image to Azure storage");
     }
-  },*/
+  },
 
   /**
    * Deletes a blob from Azure Storage

@@ -3,23 +3,25 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const dbService = {
-  async findOrCreateUser(walletAddress: string) {
+  async findOrCreateUser(artistAddress: string) {
     return prisma.user.upsert({
-      where: { walletAddress },
+      where: { artistAddress },
       update: {},
-      create: { walletAddress, createdAt: new Date() },
+      create: { artistAddress, createdAt: new Date() },
     });
   },
 
   async createTrack(data: {
     title: string;
-    artistId: string;
+    artist: string;
     genre: string;
     coverUrl: string;
+    audioUrl: string;
     mimeType: string;
     fileSize: number;
+    duration: number;
     suiId: string;
-    blobId: string;
+    artistId: string;
   }) {
     return prisma.track.create({
       data: {

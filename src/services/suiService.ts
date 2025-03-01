@@ -10,8 +10,9 @@ export const suiService = {
     title: string,
     artist: string,
     artistAddress: string,
-    genre: string
-  ): Promise<{ txDigest: string; suiId: string }> {
+    genre: string,
+    coverUrl: string
+  ): Promise<{ suiDigest: string; suiId: string }> {
     let publishDate = new Date().toISOString();
     const tx = new Transaction();
     tx.moveCall({
@@ -24,7 +25,7 @@ export const suiService = {
         tx.pure.address(artistAddress),
         tx.pure.string(genre),
         tx.pure.string(publishDate),
-        tx.pure.string("still uploading..."),
+        tx.pure.string(coverUrl),
       ],
     });
 
@@ -49,7 +50,7 @@ export const suiService = {
     } catch (error) {
       console.error("Failed to extract track_id from event:", error);
     }
-    let txDigest = response.digest;
-    return { txDigest, suiId };
+    let suiDigest = response.digest;
+    return { suiDigest, suiId };
   },
 };

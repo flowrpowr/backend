@@ -1,35 +1,39 @@
 import express from "express";
 import { uploadService } from "../services/uploadService";
+import { Request, Response } from "express";
 
 const router = express.Router();
 
-router.post("/upload", async (req, res) => {
+router.post("/upload", async (req: Request, res: Response) => {
   try {
     const {
       audio,
       title,
+      artist,
       artist_address: artistAddress,
       genre,
-      cover_url: coverUrl,
+      coverArt,
       metadata,
     } = req.body;
 
     // Validate required fields
-    if (!audio || !title || !artistAddress || !genre) {
+    if (!audio || !title || !artistAddress || !artist || !genre || !coverArt) {
       return res.status(400).json({
         success: false,
         message: "Missing required fields",
       });
     }
 
-    const fileBuffer = Buffer.from(audio, "base64");
+    const audioBuffer = Buffer.from(audio, "base64");
+    const coverBuffer = Buffer.from(coverArt, "base64");
 
     const result = await uploadService.processUpload(
-      fileBuffer,
+      audioBuffer,
       title,
+      artist,
       artistAddress,
       genre,
-      coverUrl || "",
+      coverArt,
       metadata
     );
 

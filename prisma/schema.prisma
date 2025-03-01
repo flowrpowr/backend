@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // or "mysql", "sqlite", etc.
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  artistAddress String   @unique // Sui wallet address
+  username      String  // Username on flowr
+  profilePicUrl String?  // Profile picture URL
+  bio           String?  // Artist bio/description
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  tracks        Track[]  // Tracks uploaded by this user
+  
+  // for later potentially
+  // followers      User[] @relation("UserFollows")
+  // following      User[] @relation("UserFollows")
+  // likedTracks    Track[] @relation("TrackLikes")
+  // playlists      Playlist[]
+}
+
+model Track {
+  id          String   @id @default(uuid())
+  title       String   // Track title
+  artist      String   // Artist name
+  genre       String   // Music genre
+  coverUrl    String  // URL to cover art
+  audioUrl    String   // URL to audio file (from Azure Blob storage)
+  mimeType    String   // Audio file MIME type
+  fileSize    Int      // Size in bytes
+  duration    Int?     // Track duration (seconds)
+  uploadedAt  DateTime @default(now())
+  suiId       String   @unique // Object ID on the Sui blockchain
+  streamCount Int      @default(0)
+  // Relations
+  artistId    String   // Foreign key to User
+  artistUser      User     @relation(fields: [artistId], references: [id])
+  
+  // future:
+  // likeCount    Int     @default(0)
+  // likedBy      User[]  @relation("TrackLikes")
+  // playlists    Playlist[]
+}
+
+model EP {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  coverUrl    String?
+  releaseDate DateTime?
+  createdAt   DateTime  @default(now())
+  
+  // Relations
+  artistId    String
+  artist      User      @relation(fields: [artistId], references: [id])
+  tracks      Track[]
+}
+
+model LP {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  coverUrl    String?
+  releaseDate DateTime?
+  createdAt   DateTime  @default(now())
+  
+  // Relations
+  artistId    String
+  artist      User      @relation(fields: [artistId], references: [id])
+  tracks      Track[]
+}
