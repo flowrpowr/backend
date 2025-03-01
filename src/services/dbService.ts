@@ -7,7 +7,11 @@ export const dbService = {
     return prisma.user.upsert({
       where: { artistAddress },
       update: {},
-      create: { artistAddress, createdAt: new Date() },
+      create: {
+        artistAddress,
+        username: artistAddress.slice(0, 8), // Generate a default username based on the address
+        createdAt: new Date(),
+      },
     });
   },
 

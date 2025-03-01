@@ -49,6 +49,7 @@ model Track {
   // playlists    Playlist[]
 }
 
+/* for later
 model EP {
   id          String    @id @default(uuid())
   title       String
@@ -76,3 +77,4 @@ model LP {
   artist      User      @relation(fields: [artistId], references: [id])
   tracks      Track[]
 }
+*/
