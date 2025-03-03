@@ -1,9 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import uploadRoutes from "./routes/uploadRoutes";
 import { Request, Response, NextFunction } from "express";
-import router from "./routes/uploadRoutes";
+import uploadRouter from "./routes/uploadRouter";
 
 dotenv.config();
 
@@ -13,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 // fun middleware
 app.use(cors());
-app.use(express.json({ limit: "15mb" })); // Increased limit for file uploads
+app.use(express.json({ limit: "50mb" })); // Increased limit for file uploads
 app.use(express.urlencoded({ extended: true }));
 
 // Simple logging middleware
@@ -23,7 +22,8 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use("/api", router);
+app.use("/upload", uploadRouter);
+app.use("/stream", streamRouter);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

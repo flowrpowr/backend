@@ -13,6 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "@azure/storage-blob": "^12.26.0",
+    "@mysten/bcs": "^1.4.0",
+    "@mysten/enoki": "^0.4.25",
     "@mysten/sui": "^1.21.2",
     "@prisma/client": "^6.4.1",
     "@prisma/extension-accelerate": "^1.2.2",

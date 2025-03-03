@@ -3,7 +3,10 @@ import {
   ADMIN_KEYPAIR,
   SUI_CLIENT,
   FLOWR_PACKAGE_ID,
+  enokiClient,
+  ENOKI_CLIENT_NETWORK,
 } from "../config/constants";
+import { toBase64, fromBase64 } from "@mysten/bcs";
 
 export const suiService = {
   async createTrack(
@@ -30,20 +33,18 @@ export const suiService = {
     });
 
     tx.setSender(ADMIN_KEYPAIR.toSuiAddress());
-    const bytes = await tx.build({ client: SUI_CLIENT });
-    const signature = (await ADMIN_KEYPAIR.signTransaction(bytes)).signature;
+    const txBytes = await tx.build({ client: SUI_CLIENT });
+    const signature = (await ADMIN_KEYPAIR.signTransaction(txBytes)).signature;
 
-    //TODO: Figure out how to return objectID
     const response = await SUI_CLIENT.executeTransactionBlock({
-      transactionBlock: bytes,
+      transactionBlock: txBytes,
       signature,
       options: {
         showEvents: true,
         showObjectChanges: true,
       },
     });
-    // Using "any" type - less safe but more concise
-    // Using optional chaining with any type
+
     let suiId = "";
     try {
       suiId = (response.events?.[0]?.parsedJson as any)?.track_id || "";
@@ -52,5 +53,45 @@ export const suiService = {
     }
     let suiDigest = response.digest;
     return { suiDigest, suiId };
+  },
+  async streamTrack(
+    trackSuiId: string,
+    paymentCoin: string,
+    listenerAddress: string
+  ): Promise<{ suiDigest: string }> {
+    const tx = new Transaction();
+    let streamCoin = tx.object(paymentCoin);
+    // 1 STREAM coin
+    let payment = tx.splitCoins(streamCoin, [1]);
+
+    // move call to stream_track
+    tx.moveCall({
+      package: FLOWR_PACKAGE_ID,
+      module: "track",
+      function: "stream_track",
+      arguments: [tx.pure.address(trackSuiId), payment],
+    });
+    const txBytes = await tx.build({
+      client: SUI_CLIENT,
+      onlyTransactionKind: true,
+    });
+
+    // enoki sponsored transaction
+    const sponsored = await enokiClient.createSponsoredTransaction({
+      network: "testnet",
+      transactionKindBytes: toBase64(txBytes),
+      sender: listenerAddress,
+      allowedMoveCallTargets: [`${FLOWR_PACKAGE_ID}::flowr::stream_track`],
+    });
+    const signer = ADMIN_KEYPAIR;
+    const { signature } = await signer.signTransaction(
+      fromBase64(sponsored.bytes)
+    );
+    const response = await enokiClient.executeSponsoredTransaction({
+      digest: sponsored.digest,
+      signature,
+    });
+    let suiDigest = response.digest;
+    return { suiDigest };
   },
 };
