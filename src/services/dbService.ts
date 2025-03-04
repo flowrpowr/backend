@@ -35,4 +35,22 @@ export const dbService = {
       },
     });
   },
+  async findTrackBySuiId(suiId: string) {
+    return prisma.track.findUnique({
+      where: { suiId },
+      include: {
+        artistUser: true, // Include the user who created the track
+      },
+    });
+  },
+  async incrementStreamCount(trackId: string) {
+    return prisma.track.update({
+      where: { id: trackId },
+      data: {
+        streamCount: {
+          increment: 1,
+        },
+      },
+    });
+  },
 };

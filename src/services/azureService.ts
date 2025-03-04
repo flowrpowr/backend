@@ -97,6 +97,26 @@ export const azureService = {
       throw new Error("Failed to upload cover image to Azure storage");
     }
   },
+  async getAudioBlob(blobName: string): Promise<Buffer> {
+    try {
+      // Get BlockBlobClient
+      const blockBlobClient = audioContainerClient.getBlockBlobClient(blobName);
+
+      // Download the blob to a buffer
+      const downloadResponse = await blockBlobClient.downloadToBuffer();
+
+      return downloadResponse;
+    } catch (error) {
+      console.error("Error downloading audio from Azure:", error);
+      throw new Error("Failed to download audio file from Azure storage");
+    }
+  },
+  // helper for audio fetching
+  getBlobNameFromUrl(blobUrl: string): string {
+    const url = new URL(blobUrl);
+    const pathSegments = url.pathname.split("/");
+    return pathSegments[pathSegments.length - 1];
+  },
 
   /**
    * Deletes a blob from Azure Storage
