@@ -3,78 +3,155 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // or "mysql", "sqlite", etc.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String   @id @default(uuid())
-  artistAddress String   @unique // Sui wallet address
-  username      String  // Username on flowr
-  profilePicUrl String?  // Profile picture URL
-  bio           String?  // Artist bio/description
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String          @id @default(uuid())
+  username      String          // Username on flowr
+  email         String          @unique
+  emailVerified DateTime?
+  walletAddress String?         @unique // Sui wallet address
+  profilePicUrl String?         // Profile picture URL
+  bio           String?         // Artist bio/description
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   
   // Relations
-  tracks        Track[]  // Tracks uploaded by this user
+  accounts      Account[]
+  sessions      Session[]
+  tracks        Track[]         @relation("UploadedTracks") // Tracks uploaded by this user
+  releases      Release[]       @relation("ArtistReleases") // All releases by this user
+  playlists     Playlist[]
+  likedTracks   Track[]         @relation("LikedTracks")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+ 
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+ 
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([provider, providerAccountId])
+}
+ 
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
   
-  // for later potentially
-  // followers      User[] @relation("UserFollows")
-  // following      User[] @relation("UserFollows")
-  // likedTracks    Track[] @relation("TrackLikes")
-  // playlists      Playlist[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
 }
 
 model Track {
-  id          String   @id @default(uuid())
-  title       String   // Track title
-  artist      String   // Artist name
-  genre       String   // Music genre
-  coverUrl    String  // URL to cover art
-  audioUrl    String   // URL to audio file (from Azure Blob storage)
-  mimeType    String   // Audio file MIME type
-  fileSize    Int      // Size in bytes
-  duration    Int?     // Track duration (seconds)
-  uploadedAt  DateTime @default(now())
-  suiId       String   @unique // Object ID on the Sui blockchain
-  streamCount Int      @default(0)
-  // Relations
-  artistId    String   // Foreign key to User
-  artistUser      User     @relation(fields: [artistId], references: [id])
+  id          String        @id @default(uuid())
+  title       String        // Track title
+  artistId    String        // Foreign key to User
+  artistUser  User          @relation("UploadedTracks", fields: [artistId], references: [id], onDelete: Cascade)
+  genre       String?       // Music genre
+  coverUrl    String?       // URL to cover art
+  audioUrl    String?       // URL to audio file (from Azure Blob storage)
+  mimeType    String?       // Audio file MIME type
+  fileSize    Int?          // Size in bytes
+  duration    Int?          // Track duration (seconds)
+  uploadedAt  DateTime      @default(now())
+  suiId       String?       @unique // Object ID on the Sui blockchain
+  streamCount Int           @default(0)
+  explicit    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Optional relation to a release
+  release     Release?      @relation("ReleaseTracks", fields: [releaseId], references: [id], onDelete: SetNull)
+  releaseId   String?
   
-  // future:
-  // likeCount    Int     @default(0)
-  // likedBy      User[]  @relation("TrackLikes")
-  // playlists    Playlist[]
+  // Track position in release (optional)
+  trackNumber Int?
+
+  // Playlist relations
+  playlistTracks PlaylistTrack[]
+  likedBy        User[]          @relation("LikedTracks")
+
+  @@index([genre])
+  @@index([artistId])
 }
 
-/* for later
-model EP {
-  id          String    @id @default(uuid())
+model Release {
+  id          String        @id @default(uuid())
   title       String
+  type        ReleaseType
   description String?
-  coverUrl    String?
-  releaseDate DateTime?
-  createdAt   DateTime  @default(now())
-  
-  // Relations
   artistId    String
-  artist      User      @relation(fields: [artistId], references: [id])
-  tracks      Track[]
+  genre       String?
+  coverUrl    String?
+  artistUser  User          @relation("ArtistReleases", fields: [artistId], references: [id], onDelete: Cascade)
+  tracks      Track[]       @relation("ReleaseTracks")
+  releaseDate DateTime
+  suiId       String?       @unique // Object ID on the Sui blockchain if the release is tokenized
+  explicit    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([type])
+  @@index([artistId])
 }
 
-model LP {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  coverUrl    String?
-  releaseDate DateTime?
-  createdAt   DateTime  @default(now())
-  
-  // Relations
-  artistId    String
-  artist      User      @relation(fields: [artistId], references: [id])
-  tracks      Track[]
+enum ReleaseType {
+  SINGLE
+  EP
+  LP
+  COMPILATION
+  MIXTAPE
 }
-*/
+
+model Playlist {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  isPublic    Boolean         @default(true)
+  coverUrl    String?
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tracks      PlaylistTrack[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([userId])
+}
+
+model PlaylistTrack {
+  playlistId  String
+  trackId     String
+  playlist    Playlist        @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  track       Track           @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  position    Int             // Track position in playlist
+  addedAt     DateTime        @default(now())
+
+  @@id([playlistId, trackId])
+  @@index([playlistId])
+  @@index([trackId])
+}

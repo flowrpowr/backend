@@ -58,7 +58,7 @@ export const azureService = {
       return blockBlobClient.url;
     } catch (error) {
       console.error("Error uploading audio to Azure:", error);
-      throw new Error("Failed to upload audio file to Azure storage");
+      throw new Error(`Failed to upload "${title}" file to Azure storage`);
     }
   },
 
@@ -94,7 +94,9 @@ export const azureService = {
       return blockBlobClient.url;
     } catch (error) {
       console.error("Error uploading cover to Azure:", error);
-      throw new Error("Failed to upload cover image to Azure storage");
+      throw new Error(
+        `Failed to upload cover image of ${title} to Azure storage`
+      );
     }
   },
   async getAudioBlob(blobName: string): Promise<Buffer> {

@@ -1,39 +1,47 @@
 import express from "express";
 import { uploadService } from "../services/uploadService";
 import { Request, Response } from "express";
+import { release } from "os";
 
 const uploadRouter = express.Router();
 
 uploadRouter.post("/", async (req: Request, res: Response) => {
+  //TODO: what if multiple artists? for now just one owner
   try {
     const {
-      audio,
       title,
-      artist,
-      artist_address: artistAddress,
+      release_type: releaseType,
       genre,
-      coverArt,
+      uploader_sui_address: uploaderSuiAddress,
+      audio,
+      cover_art: coverArt,
       metadata,
     } = req.body;
 
     // Validate required fields
-    if (!audio || !title || !artistAddress || !artist || !genre || !coverArt) {
+    if (!audio || !title || !uploaderSuiAddress || !genre || !coverArt) {
       return res.status(400).json({
         success: false,
         message: "Missing required fields",
       });
     }
-
+    // TODO: support more than single later
+    if (releaseType != "SINGLE") {
+      return res.status(400).json({
+        success: false,
+        message: "currently only supporting Single release type",
+      });
+    }
     const audioBuffer = Buffer.from(audio, "base64");
     const coverBuffer = Buffer.from(coverArt, "base64");
 
     const result = await uploadService.processUpload(
-      audioBuffer,
       title,
-      artist,
-      artistAddress,
+      releaseType,
       genre,
-      coverArt,
+      uploaderSuiAddress,
+      audioBuffer,
+      coverBuffer,
       metadata
     );
 

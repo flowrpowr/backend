@@ -8,7 +8,7 @@ dotenv.config();
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 11111;
 
 // fun middleware
 app.use(cors());
@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/upload", uploadRouter);
-app.use("/stream", streamRouter);
+//app.use("/stream", streamRouter);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

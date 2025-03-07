@@ -4,7 +4,6 @@ import {
   SUI_CLIENT,
   FLOWR_PACKAGE_ID,
   enokiClient,
-  ENOKI_CLIENT_NETWORK,
 } from "../config/constants";
 import { toBase64, fromBase64 } from "@mysten/bcs";
 

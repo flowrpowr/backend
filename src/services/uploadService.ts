@@ -4,12 +4,12 @@ import { azureService } from "./azureService";
 
 export const uploadService = {
   async processUpload(
-    fileBuffer: Buffer,
     title: string,
-    artist: string,
-    artistAddress: string,
+    releaseType: string,
     genre: string,
-    coverArt: Buffer,
+    uploaderSuiAddress: string,
+    audioBuffer: Buffer,
+    coverBuffer: Buffer,
     metadata: {
       audioMimeType: string;
       audioFileSize: number;
@@ -18,17 +18,20 @@ export const uploadService = {
       coverFileSize: number;
     }
   ) {
+    // 0. check if this uploader exists
+    const user = await dbService.findUser(uploaderSuiAddress);
+
     //1. Store files on cloud
     const trackPromise = azureService.uploadAudioBlob(
-      fileBuffer,
+      audioBuffer,
       metadata.audioMimeType,
-      artistAddress,
+      uploaderSuiAddress,
       title
     );
     const coverPromise = azureService.uploadCoverImage(
-      coverArt,
+      coverBuffer,
       metadata.coverMimeType,
-      artistAddress,
+      uploaderSuiAddress,
       title
     );
     // run them in parallel, wait for both
@@ -38,21 +41,21 @@ export const uploadService = {
     ]);
 
     // 2. Sui object upload
+    // TODO: add artists names (potentially multiple)
+    let artistName = user.username;
     const { suiDigest, suiId } = await suiService.createTrack(
       title,
-      artist,
-      artistAddress,
+      artistName,
+      uploaderSuiAddress,
       genre,
       azCoverUrl
     );
 
     // 3. Store in database
-
-    //lookup user using artist
-    const user = await dbService.findOrCreateUser(artistAddress);
+    // TODO: also create a release..?
     const track = await dbService.createTrack({
       title,
-      artist,
+      artistId: user.id,
       genre,
       coverUrl: azCoverUrl,
       audioUrl: azCoverUrl,
@@ -60,7 +63,6 @@ export const uploadService = {
       fileSize: metadata.audioFileSize,
       duration: metadata.audioDuration,
       suiId,
-      artistId: user.id,
     });
 
     return {

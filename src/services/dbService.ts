@@ -1,24 +1,25 @@
-import { PrismaClient } from "@prisma/client/edge";
+import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
 const prisma = new PrismaClient().$extends(withAccelerate());
 
 export const dbService = {
-  async findOrCreateUser(artistAddress: string) {
-    return prisma.user.upsert({
-      where: { artistAddress },
-      update: {},
-      create: {
-        artistAddress,
-        username: artistAddress.slice(0, 8), // Generate a default username based on the address
-        createdAt: new Date(),
-      },
+  async findUser(walletAddress: string) {
+    let user = await prisma.user.findUnique({
+      where: { walletAddress },
     });
+    if (!user) {
+      console.error("Unable to find user with sui address: ", walletAddress);
+      throw new Error(
+        `Unable to find user with sui address: ", ${walletAddress}`
+      );
+    }
+    return user;
   },
 
   async createTrack(data: {
     title: string;
-    artist: string;
+    artistId: string;
     genre: string;
     coverUrl: string;
     audioUrl: string;
@@ -26,7 +27,6 @@ export const dbService = {
     fileSize: number;
     duration: number;
     suiId: string;
-    artistId: string;
   }) {
     return prisma.track.create({
       data: {
