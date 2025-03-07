@@ -23,7 +23,6 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/upload", uploadRouter);
-//app.use("/stream", streamRouter);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
