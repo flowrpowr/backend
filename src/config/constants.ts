@@ -18,14 +18,7 @@ export const SUI_CLIENT = new SuiClient({ url: SUI_RPC_URL });
 
 //Sui smart contracts
 export const FLOWR_PACKAGE_ID =
-  "0x564d9dc997f54ad1da3da5e2b0d155b49272b5711eb9fb4b9d151e35286cdf76";
-
-//Enoki
-import { EnokiClient } from "@mysten/enoki";
-
-export const enokiClient = new EnokiClient({
-  apiKey: process.env.ENOKI_SECRET_KEY!,
-});
+  "0xc5e2ac369866cea198b7ae9e94ecf2050b3f04497fea8ce31caea9b253e8c3e4";
 
 //Azure
 export const AUDIO_CONTAINER_NAME = process.env.AUDIO_CONTAINER_NAME || "";

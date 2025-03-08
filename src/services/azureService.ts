@@ -35,12 +35,12 @@ export const azureService = {
   async uploadAudioBlob(
     fileBuffer: Buffer,
     mimeType: string,
-    artistAddress: string,
+    artistId: string,
     title: string
   ): Promise<string> {
     try {
       // naming blob
-      const blobName = `${artistAddress}-${title}.${this.getFileExtension(
+      const blobName = `${artistId}-${title}.${this.getFileExtension(
         mimeType
       )}`;
 
@@ -72,11 +72,11 @@ export const azureService = {
   async uploadCoverImage(
     imageBuffer: Buffer,
     mimeType: string,
-    artistAddress: string,
+    artistId: string,
     title: string
   ): Promise<string> {
     try {
-      const blobName = `${artistAddress}-${title}.${this.getFileExtension(
+      const blobName = `${artistId}-${title}.${this.getFileExtension(
         mimeType
       )}`;
 

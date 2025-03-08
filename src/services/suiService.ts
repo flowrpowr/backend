@@ -3,12 +3,14 @@ import {
   ADMIN_KEYPAIR,
   SUI_CLIENT,
   FLOWR_PACKAGE_ID,
-  enokiClient,
 } from "../config/constants";
 import { toBase64, fromBase64 } from "@mysten/bcs";
 
 export const suiService = {
   async createTrack(
+    releaseType: string,
+    releaseTitle: string,
+    trackNumber: number,
     title: string,
     artist: string,
     artistAddress: string,
@@ -22,6 +24,9 @@ export const suiService = {
       module: "track",
       function: "create_track",
       arguments: [
+        tx.pure.string(releaseType),
+        tx.pure.string(releaseTitle),
+        tx.pure.u8(trackNumber),
         tx.pure.string(title),
         tx.pure.string(artist),
         tx.pure.address(artistAddress),
@@ -52,45 +57,5 @@ export const suiService = {
     }
     let suiDigest = response.digest;
     return { suiDigest, suiId };
-  },
-  async streamTrack(
-    trackSuiId: string,
-    paymentCoin: string,
-    listenerAddress: string
-  ): Promise<{ suiDigest: string }> {
-    const tx = new Transaction();
-    let streamCoin = tx.object(paymentCoin);
-    // 1 STREAM coin
-    let payment = tx.splitCoins(streamCoin, [1]);
-
-    // move call to stream_track
-    tx.moveCall({
-      package: FLOWR_PACKAGE_ID,
-      module: "track",
-      function: "stream_track",
-      arguments: [tx.pure.address(trackSuiId), payment],
-    });
-    const txBytes = await tx.build({
-      client: SUI_CLIENT,
-      onlyTransactionKind: true,
-    });
-
-    // enoki sponsored transaction
-    const sponsored = await enokiClient.createSponsoredTransaction({
-      network: "testnet",
-      transactionKindBytes: toBase64(txBytes),
-      sender: listenerAddress,
-      allowedMoveCallTargets: [`${FLOWR_PACKAGE_ID}::flowr::stream_track`],
-    });
-    const signer = ADMIN_KEYPAIR;
-    const { signature } = await signer.signTransaction(
-      fromBase64(sponsored.bytes)
-    );
-    const response = await enokiClient.executeSponsoredTransaction({
-      digest: sponsored.digest,
-      signature,
-    });
-    let suiDigest = response.digest;
-    return { suiDigest };
   },
 };
