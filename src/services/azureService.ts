@@ -2,6 +2,7 @@ import {
   BlobServiceClient,
   BlockBlobClient,
   BlockBlobUploadResponse,
+  BlobSASPermissions,
 } from "@azure/storage-blob";
 import dotenv from "dotenv";
 import {
@@ -99,18 +100,22 @@ export const azureService = {
       );
     }
   },
-  async getAudioBlob(blobName: string): Promise<Buffer> {
+  async generateSignedUrl(blobName: string): Promise<string> {
     try {
       // Get BlockBlobClient
-      const blockBlobClient = audioContainerClient.getBlockBlobClient(blobName);
+      const blobClient = audioContainerClient.getBlobClient(blobName);
+      //calculate expire time
+      const expiresOn = new Date();
+      expiresOn.setMinutes(expiresOn.getMinutes() + 10); //expires in 10 min
 
-      // Download the blob to a buffer
-      const downloadResponse = await blockBlobClient.downloadToBuffer();
-
-      return downloadResponse;
+      const sasUrl = await blobClient.generateSasUrl({
+        permissions: BlobSASPermissions.parse("r"), // Read permission
+        expiresOn: expiresOn,
+      });
+      return sasUrl;
     } catch (error) {
-      console.error("Error downloading audio from Azure:", error);
-      throw new Error("Failed to download audio file from Azure storage");
+      console.error("Error getting audio signedUrl  from Azure:", error);
+      throw new Error("Failed getting audio signedUrl from Azure");
     }
   },
   // helper for audio fetching

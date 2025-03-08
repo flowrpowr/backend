@@ -3,9 +3,15 @@ import {
   ADMIN_KEYPAIR,
   SUI_CLIENT,
   FLOWR_PACKAGE_ID,
+  STREAM_COIN_TYPE,
 } from "../config/constants";
 import { toBase64, fromBase64 } from "@mysten/bcs";
+import { EnokiClient } from "@mysten/enoki";
 
+const enokiClient = new EnokiClient({
+  apiKey: process.env.ENOKI_SECRET_KEY || "",
+});
+// TODO: batch all sui transactions
 export const suiService = {
   async createTrack(
     releaseType: string,
@@ -57,5 +63,54 @@ export const suiService = {
     }
     let suiDigest = response.digest;
     return { suiDigest, suiId };
+  },
+  async streamTrack(
+    trackSuiId: string,
+    listenerAddress: string
+  ): Promise<string> {
+    //TODO: maybe this should be in frontend
+    // get payment coin
+    let result = await SUI_CLIENT.getCoins({
+      owner: listenerAddress,
+      coinType: STREAM_COIN_TYPE,
+    });
+    if (result.data.length < 1) {
+      console.log(`listener ${listenerAddress} has no STREAM coins`);
+      throw new Error(`listener ${listenerAddress} has no STREAM coins`);
+    }
+    let paymentCoin = result.data[0].coinObjectId;
+    const tx = new Transaction();
+    let streamCoin = tx.object(paymentCoin);
+    // 1 STREAM coin
+    let payment = tx.splitCoins(streamCoin, [1]);
+    // move call to stream_track
+    tx.moveCall({
+      package: FLOWR_PACKAGE_ID,
+      module: "track",
+      function: "stream_track",
+      arguments: [tx.pure.address(trackSuiId), payment],
+    });
+    const txBytes = await tx.build({
+      client: SUI_CLIENT,
+      onlyTransactionKind: true,
+    });
+
+    // enoki sponsored transaction
+    const sponsored = await enokiClient.createSponsoredTransaction({
+      network: "testnet",
+      transactionKindBytes: toBase64(txBytes),
+      sender: listenerAddress,
+      allowedMoveCallTargets: [`${FLOWR_PACKAGE_ID}::flowr::stream_track`],
+    });
+    const signer = ADMIN_KEYPAIR;
+    const { signature } = await signer.signTransaction(
+      fromBase64(sponsored.bytes)
+    );
+    const response = await enokiClient.executeSponsoredTransaction({
+      digest: sponsored.digest,
+      signature,
+    });
+    let suiDigest = response.digest;
+    return suiDigest;
   },
 };
