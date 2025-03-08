@@ -70,8 +70,9 @@ export const suiService = {
   ): Promise<string> {
     //TODO: maybe this should be in frontend
     // get payment coin
+    //TODO: change this to be the listener... for now its this for MVP
     let result = await SUI_CLIENT.getCoins({
-      owner: listenerAddress,
+      owner: ADMIN_KEYPAIR.toSuiAddress(),
       coinType: STREAM_COIN_TYPE,
     });
     if (result.data.length < 1) {
@@ -80,27 +81,28 @@ export const suiService = {
     }
     let paymentCoin = result.data[0].coinObjectId;
     const tx = new Transaction();
+    tx.setSender(ADMIN_KEYPAIR.toSuiAddress());
+
     let streamCoin = tx.object(paymentCoin);
     // 1 STREAM coin
-    let payment = tx.splitCoins(streamCoin, [1]);
+    let [payment] = tx.splitCoins(streamCoin, [1]);
     // move call to stream_track
     tx.moveCall({
       package: FLOWR_PACKAGE_ID,
       module: "track",
       function: "stream_track",
-      arguments: [tx.pure.address(trackSuiId), payment],
+      arguments: [tx.object(trackSuiId), payment],
     });
     const txBytes = await tx.build({
       client: SUI_CLIENT,
-      onlyTransactionKind: true,
     });
 
-    // enoki sponsored transaction
-    const sponsored = await enokiClient.createSponsoredTransaction({
+    // TODO: do actual enoki sponsored transaction
+    /*const sponsored = await enokiClient.createSponsoredTransaction({
       network: "testnet",
       transactionKindBytes: toBase64(txBytes),
       sender: listenerAddress,
-      allowedMoveCallTargets: [`${FLOWR_PACKAGE_ID}::flowr::stream_track`],
+      allowedMoveCallTargets: [`${FLOWR_PACKAGE_ID}::track::stream_track`],
     });
     const signer = ADMIN_KEYPAIR;
     const { signature } = await signer.signTransaction(
@@ -110,7 +112,18 @@ export const suiService = {
       digest: sponsored.digest,
       signature,
     });
-    let suiDigest = response.digest;
-    return suiDigest;
+    let suiDigest = response.digest;*/
+    const signature = (await ADMIN_KEYPAIR.signTransaction(txBytes)).signature;
+    console.log(paymentCoin);
+    const response = await SUI_CLIENT.executeTransactionBlock({
+      transactionBlock: txBytes,
+      signature,
+      options: {
+        showEvents: true,
+        showObjectChanges: true,
+      },
+    });
+    console.log(response.digest);
+    return response.digest;
   },
 };

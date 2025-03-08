@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { Request, Response, NextFunction } from "express";
 import uploadRouter from "./routes/uploadRouter";
+import streamRouter from "./routes/streamRouter";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/upload", uploadRouter);
+app.use("/stream", streamRouter);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

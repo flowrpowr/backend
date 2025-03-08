@@ -1,7 +1,7 @@
 import express from "express";
 
 import { Request, Response } from "express";
-import { streamService } from "src/services/streamService";
+import { streamService } from "../services/streamService";
 
 const streamRouter = express.Router();
 
@@ -30,3 +30,5 @@ streamRouter.get("/", (req: Request, res: Response) => {
     }
   })();
 });
+
+export default streamRouter;

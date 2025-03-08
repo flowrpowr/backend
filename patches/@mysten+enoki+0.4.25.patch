@@ -1,0 +1,13 @@
+diff --git a/node_modules/@mysten/enoki/dist/cjs/EnokiFlow.js b/node_modules/@mysten/enoki/dist/cjs/EnokiFlow.js
+index b27261e..2c8b549 100644
+--- a/node_modules/@mysten/enoki/dist/cjs/EnokiFlow.js
++++ b/node_modules/@mysten/enoki/dist/cjs/EnokiFlow.js
+@@ -33,7 +33,7 @@ var import_cryptography = require("@mysten/sui/cryptography");
+ var import_ed25519 = require("@mysten/sui/keypairs/ed25519");
+ var import_utils = require("@mysten/sui/utils");
+ var import_jose = require("jose");
+-var import_nanostores = require("nanostores");
++var import_nanostores = require("nanostores-cjs");
+ var import_encryption = require("./encryption.js");
+ var import_EnokiClient = require("./EnokiClient/index.js");
+ var import_EnokiKeypair = require("./EnokiKeypair.js");
