@@ -76,7 +76,7 @@ export const uploadService = {
       title
     );
     // run them in parallel, wait for both
-    const [release, azTrackUrl] = await Promise.all([
+    const [release, azBlobName] = await Promise.all([
       releasePromise,
       trackPromise,
     ]);
@@ -104,7 +104,7 @@ export const uploadService = {
         title,
         artistId,
         genre,
-        audioUrl: azTrackUrl,
+        blobName: azBlobName,
         mimeType: audioMetadata.mimeType,
         fileSize: audioMetadata.fileSize,
         duration: audioMetadata.duration,

@@ -18,8 +18,9 @@ export const streamService = {
         where: { id: trackId },
       });
       // get audioBuffer
-      let segs = (track.audioUrl as string).split("/");
-      let blobName = segs[segs.length - 1];
+      let blobName = track.blobName as string;
+      console.log("blob name: ", blobName);
+      console.log("title: ", track.title as string);
       let signedUrl = await azureService.generateSignedUrl(blobName);
 
       // sui payment and stream increment

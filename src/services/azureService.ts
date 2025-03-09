@@ -56,7 +56,7 @@ export const azureService = {
           },
         });
       // Return the URL of the uploaded blob
-      return blockBlobClient.url;
+      return blobName;
     } catch (error) {
       console.error("Error uploading audio to Azure:", error);
       throw new Error(`Failed to upload "${title}" file to Azure storage`);
@@ -109,9 +109,10 @@ export const azureService = {
       expiresOn.setMinutes(expiresOn.getMinutes() + 10); //expires in 10 min
 
       const sasUrl = await blobClient.generateSasUrl({
-        permissions: BlobSASPermissions.parse("r"), // Read permission
+        permissions: BlobSASPermissions.parse("read"), // Read permission
         expiresOn: expiresOn,
       });
+      console.log(sasUrl);
       return sasUrl;
     } catch (error) {
       console.error("Error getting audio signedUrl  from Azure:", error);
