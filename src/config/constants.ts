@@ -18,9 +18,9 @@ export const SUI_CLIENT = new SuiClient({ url: SUI_RPC_URL });
 
 //Sui smart contracts
 export const FLOWR_PACKAGE_ID =
-  "0xc5e2ac369866cea198b7ae9e94ecf2050b3f04497fea8ce31caea9b253e8c3e4";
+  "0x83b87bc817b2ed76bef71c8b283c3f03a9bb7fd49133528f3d1b952f341f844b";
 export const STREAM_COIN_TYPE =
-  "0xc5e2ac369866cea198b7ae9e94ecf2050b3f04497fea8ce31caea9b253e8c3e4::stream::STREAM";
+  "0x83b87bc817b2ed76bef71c8b283c3f03a9bb7fd49133528f3d1b952f341f844b::stream::STREAM";
 //Azure
 export const AUDIO_CONTAINER_NAME = process.env.AUDIO_CONTAINER_NAME || "";
 export const COVER_CONTAINER_NAME = process.env.COVER_CONTAINER_NAME || "";
